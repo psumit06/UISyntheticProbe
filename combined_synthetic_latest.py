@@ -385,16 +385,16 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     registry = CollectorRegistry()
 
     monitor_gauge = Gauge(
-        f"synthetic_journey_p90_{time_formatter.label}",
+        f"synthetic_monitor_p90_{time_formatter.label}",
         "P90 duration",
-        ['env', 'scenario', 'run_id'],
+        ["env", "{scenario}", "run_id"],
         registry=registry
     )
 
     for scenario, values in timings.items():
         monitor_gauge.labels(
             env=args.env,
-            scenario=scenario,
+            scenario={scenario},
             run_id=run_id
         ).set(int(percentile(values, 90)))
         
@@ -441,7 +441,7 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
         ]) 
 
         step_writer.writerow([
-            "timestamp_utc", "env", "run_id",
+            "timestamp", "env", "run_id",
             "journey", "step",
             step_duration_col, step_fcp_col, step_lcp_col, "cls",
             "status", "screenshot", "error"
@@ -506,7 +506,7 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                                     error_text
                                 ])
 
-                                duration_valid = step_data.get("duration_ms") is not None and step_data["duration_ms"] >= 0
+                                duration_valid = step_data["duration_ms"] is not None and step_data["duration_ms"] >= 0
                                 if duration_valid:
                                     bucket_start = get_time_bucket(step_timestamp, bucket_minutes)
                                     bucketed_step_timings[(journey_name, step_data["step"])][bucket_start].append(
@@ -652,14 +652,14 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
     registry = CollectorRegistry()
 
     journey_gauge = Gauge(
-    f"synthetic_journey_p90_{time_formatter.label}",
-    "P90 journey duration",
-    ["env", "journey", "run_id"],
-    registry=registry
+        f"synthetic_journey_p90_{time_formatter.label}",
+        "P90 journey duration",
+        ["env", "journey", "run_id"],
+        registry=registry
     )
 
     for journey, values in journey_timings.items():
-    journey_gauge.labels(
+        journey_gauge.labels(
         env=args.env,
         journey=journey,
         run_id=run_id
