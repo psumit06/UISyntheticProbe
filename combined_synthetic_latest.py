@@ -70,7 +70,7 @@ class TimeFormatter:
     def convert(self, value):
         if value is None or value < 0:
             return -1
-        if self.unit == "ms": 
+        if self.unit == "ms":
             return int(round(value))
         return round(value / 1000.0, 3)
 
@@ -165,7 +165,7 @@ class ScenarioObserver:
 
         self.start_time = None
         cls_value = 0.0 if cls == -1 else cls
-        return duration_ms, int(fcp), int(lcp), round(cls_value, 3)    
+        return duration_ms, int(fcp), int(lcp), round(cls_value, 3)
 
 class StepObserver:
     def __init__(self):
@@ -293,7 +293,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                         error_message = str(exc)
                     except Exception as exc:
                         status = "FAILURE"
-                        error_type = "NAVIGATION ERROR"
+                        error_type = "NAVIGATION_ERROR"
                         error_message = str(exc)   
 
                     if status != "SUCCESS":
@@ -305,7 +305,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                             page.screenshot(path=screenshot_path, full_page=True)
                         except Exception:
                             screenshot_path = ""
-                            
+
                         err_writer.writerow([
                             now.isoformat(), args.env, run_id,
                             url, error_type, error_message, screenshot_path
@@ -321,7 +321,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                         converted_duration, converted_fcp, converted_lcp, round(cls, 3),
                         error_type, error_message, screenshot_path
                     ])
-                    
+
                     if status == "SUCCESS" and duration > 0:
                         timings[url].append(duration)
                         bucket_start = get_time_bucket(now, bucket_minutes)
@@ -353,7 +353,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                 time_formatter.convert(min(values)),
                 len(values)
             ])
-            
+
     with open(bucketed_path, "w", newline="") as bucket_file:
         writer = csv.writer(bucket_file)
         writer.writerow([
@@ -397,11 +397,11 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
             scenario={scenario},
             run_id=run_id
         ).set(int(percentile(values, 90)))
-        
+
     push_to_gateway(
         "localhost:9091",
-         job="synthetic_monitor",
-         registry=registry
+        job="synthetic_monitor",
+        registry=registry
     )
 
 
@@ -438,7 +438,7 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
         journey_writer.writerow([
             "timestamp", "env", "run_id",
             "journey", "status", total_duration_col, "input_data"
-        ]) 
+        ])
 
         step_writer.writerow([
             "timestamp", "env", "run_id",
@@ -523,7 +523,7 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                             status = "FAILURE"
 
                             failed_step = observer.step_name or "unknown"
-                            
+
                             shot = capture_screenshot(
                                 page,
                                 screenshot_dir,
@@ -632,14 +632,14 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                     time_formatter.convert(percentile(lcp_values, 90)) if lcp_values else -1,
                     time_formatter.convert(statistics.mean(lcp_values)) if lcp_values else -1,
                     len(durations)
-                ])             
+                ])
 
     # with open(prom_path, "w") as prom_file:
     #     for journey_name, values in journey_timings.items():
     #         prom_file.write(
     #             f'synthetic_journey_p90_{time_formatter.label}{{env="{args.env}",journey="{journey_name}"}} '
     #             f'{time_formatter.convert(percentile(values, 90))}\n'
-    #         )                                   
+    #         )
 
     # for (journey_name, step_name), values in step_timings.items():
     #     prom_file.write(
@@ -660,15 +660,15 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
 
     for journey, values in journey_timings.items():
         journey_gauge.labels(
-        env=args.env,
-        journey=journey,
-        run_id=run_id
+            env=args.env,
+            journey=journey,
+            run_id=run_id
         ).set(int(percentile(values, 90)))
 
     push_to_gateway(
-    "localhost:9091",
-    job="synthetic_monitor",
-    registry=registry
+        "localhost:9091",
+        job="synthetic_monitor",
+        registry=registry
     )
 
 
