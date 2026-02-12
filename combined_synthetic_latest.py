@@ -140,28 +140,28 @@ class ScenarioObserver:
             except Exception:
                 return -1
 
-            fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
-            
-            lcp = safe_eval("""
-            () => new Promise(resolve => {
-                new PerformanceObserver(list => {
-                    const e = list.getEntries()
-                    resolve(e[e.length - 1]?.startTime || -1)
-                }).observe({ type: 'largest-contentful-paint', buffered: true })
-            })
-            """)
+        fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
+        
+        lcp = safe_eval("""
+        () => new Promise(resolve => {
+            new PerformanceObserver(list => {
+                const e = list.getEntries()
+                resolve(e[e.length - 1]?.startTime || -1)
+            }).observe({ type: 'largest-contentful-paint', buffered: true })
+        })
+        """)
 
-            cls = self.safe_eval("""
-            () => {
-                let v = 0
-                new PerformanceObserver(list => {
-                    for (const e of list.getEntries()) {
-                        if (!e.hadRecentInput) v += e.value
-                    }
-                }).observe({ type: 'layout-shift', buffered: true })
-                return v
-            }
-            """)
+        cls = self.safe_eval("""
+        () => {
+            let v = 0
+            new PerformanceObserver(list => {
+                for (const e of list.getEntries()) {
+                    if (!e.hadRecentInput) v += e.value
+                }
+            }).observe({ type: 'layout-shift', buffered: true })
+            return v
+        }
+        """)
 
         self.start_time = None
         cls_value = 0.0 if cls == -1 else cls
