@@ -131,7 +131,7 @@ class ScenarioObserver:
     def end(self, page):
         if self.start_time is None:
             return -1, -1, -1, 0.0
-        
+
         duration_ms = int((time.time() - self.start_time) * 1000)
 
         def safe_eval(expr):
@@ -141,7 +141,7 @@ class ScenarioObserver:
                 return -1
 
         fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
-        
+
         lcp = safe_eval("""
         () => new Promise(resolve => {
             new PerformanceObserver(list => {
@@ -186,7 +186,7 @@ class StepObserver:
                 return -1
 
         fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
-        
+
         lcp = safe_eval("""
         () => new Promise(resolve => {
             new PerformanceObserver(list => {
@@ -237,7 +237,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     urls = load_urls(args.urls)
     if not urls:
         raise ValueError("No URLs found in the provided input.")
-    
+
     end_time = time.time() + args.duration * 60
     bucket_minutes = max(1, args.bucket)
 
@@ -271,7 +271,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                 for url in urls:
                     if time.time() >= end_time:
                         break
-                    
+
                     page = context.new_page()
                     now = datetime.utcnow()
 
@@ -294,7 +294,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                     except Exception as exc:
                         status = "FAILURE"
                         error_type = "NAVIGATION_ERROR"
-                        error_message = str(exc)   
+                        error_message = str(exc)
 
                     if status != "SUCCESS":
                         screenshot_path = os.path.join(
@@ -368,7 +368,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                     bucket_start.isoformat(), args.env, run_id, scenario,
                     time_formatter.convert(percentile(durations, 90)),
                     time_formatter.convert(statistics.mean(durations)),
-                    time_formatter.convert(percentile(lcp_values, 90)) if lcp_values else -1,                    
+                    time_formatter.convert(percentile(lcp_values, 90)) if lcp_values else -1,
                     time_formatter.convert(statistics.mean(lcp_values)) if lcp_values else -1,
                     len(durations)
                 ])
@@ -378,7 +378,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     #         prom_file.write(
     #             f'scenario_duration_p90_{time_formatter.label}{{env="{args.env}",scenario="{scenario}",run_id="{run_id}"}} '
     #             f'{time_formatter.convert(percentile(values, 90))}\n'
-    #         )     
+    #         )
 
 # ================= PROMETHEUS PUSH =================
 
@@ -641,11 +641,11 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
     #             f'{time_formatter.convert(percentile(values, 90))}\n'
     #         )
 
-    # for (journey_name, step_name), values in step_timings.items():
-    #     prom_file.write(
-    #         f'synthetic_step_p90_{time_formatter.label}{{env="{args.env}",journey="{journey_name}",step="{step_name}"}} '
-    #         f'{time_formatter.convert(percentile(values, 90))}\n'
-    #     )
+        # for (journey_name, step_name), values in step_timings.items():
+        #     prom_file.write(
+        #         f'synthetic_step_p90_{time_formatter.label}{{env="{args.env}",journey="{journey_name}",step="{step_name}"}} '
+        #         f'{time_formatter.convert(percentile(values, 90))}\n'
+        #     )
 
 # ============== Prometheus Push ================
 
