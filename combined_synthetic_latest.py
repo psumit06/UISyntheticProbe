@@ -21,7 +21,7 @@ HeadlessMode = True
 def parse_args():
     p = argparse.ArgumentParser("Synthetic Monitoring Framework")
     p.add_argument("--mode", choices=["url", "journey"], required=True)
-    p.add_argument("--env", default="stage)
+    p.add_argument("--env", default="stage")
     p.add_argument("--urls", default="urls.txt")
     p.add_argument("--journey-data", help="CSV input for journeys")
     p.add_argument("--duration", type=int, default=30)
