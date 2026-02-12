@@ -151,7 +151,7 @@ class ScenarioObserver:
         })
         """)
 
-        cls = self.safe_eval("""
+        cls = safe_eval("""
         () => {
             let v = 0
             new PerformanceObserver(list => {
@@ -165,7 +165,7 @@ class ScenarioObserver:
 
         self.start_time = None
         cls_value = 0.0 if cls == -1 else cls
-        return duration_ms, int(fcp), int(lcp), round(cls, 3)    
+        return duration_ms, int(fcp), int(lcp), round(cls_value, 3)    
 
 class StepObserver:
     def __init__(self):
@@ -224,7 +224,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     screenshot_dir = os.path.join(base_dir, "screenshots")
     os.makedirs(screenshot_dir, exist_ok=True)
 
-    raw_results = os.path.join(base_dir, "raw_results.csv")
+    raw_results = os.path.join(base_dir, "results.csv")
     error_log = os.path.join(base_dir, "errors.csv")
     summary_path = os.path.join(base_dir, "summary_report.csv")
     bucketed_path = os.path.join(base_dir, "bucketed_performance_report.csv")
@@ -300,7 +300,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                         screenshot_path = os.path.join(
                             screenshot_dir,
                             f"{now.strftime('%Y%m%dT%H%M%S')}_{safe_url_name(url)}_{error_type}.png"
-                            )
+                        )
                         try:
                             page.screenshot(path=screenshot_path, full_page=True)
                         except Exception:
@@ -322,11 +322,11 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
                         error_type, error_message, screenshot_path
                     ])
                     
-                    if status == "SUCCESS" and duration >= 0:
+                    if status == "SUCCESS" and duration > 0:
                         timings[url].append(duration)
                         bucket_start = get_time_bucket(now, bucket_minutes)
                         bucketed_timings[url][bucket_start].append(duration)
-                        if lcp >= 0:
+                        if lcp > 0:
                             bucketed_lcp[url][bucket_start].append(lcp)
 
                     page.close()
@@ -346,7 +346,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
         ])
         for scenario, values in timings.items():
             writer.writerow([
-                "scenario",
+                scenario,
                 time_formatter.convert(statistics.mean(values)),
                 time_formatter.convert(percentile(values, 90)),
                 time_formatter.convert(max(values)),
@@ -357,8 +357,8 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     with open(bucketed_path, "w", newline="") as bucket_file:
         writer = csv.writer(bucket_file)
         writer.writerow([
-            "bucket_start_utc", env, run_id, "scenario",
-            f"p90_duration_{time_formatter.label}", f"avg_load_{time_formatter.label}",
+            "bucket_start_utc", "env", "run_id", "scenario",
+            f"p90_load_{time_formatter.label}", f"avg_load_{time_formatter.label}",
             f"p90_lcp_{time_formatter.label}", f"avg_lcp_{time_formatter.label}", "samples"
         ])
         for scenario, bucket_map in bucketed_timings.items():
@@ -376,7 +376,7 @@ def run_url_mode(args, base_dir, run_id, time_formatter):
     # with open(prom_path, "w") as prom_file:
     #     for scenario, values in timings.items():
     #         prom_file.write(
-    #             f'synthetic_journey_p90_{time_formatter.label}{{env="{args.env}",scenario="{scenario}",run_id="{run_id}"}} '
+    #             f'scenario_duration_p90_{time_formatter.label}{{env="{args.env}",scenario="{scenario}",run_id="{run_id}"}} '
     #             f'{time_formatter.convert(percentile(values, 90))}\n'
     #         )     
 
@@ -436,14 +436,14 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
         step_writer = csv.writer(sr)
 
         journey_writer.writerow([
-            "timestamp_utc", "env", "run_id",
+            "timestamp", "env", "run_id",
             "journey", "status", total_duration_col, "input_data"
         ]) 
 
         step_writer.writerow([
             "timestamp_utc", "env", "run_id",
             "journey", "step",
-            step_duration_col, step_fcp_col, step_lcp_col, "cls"
+            step_duration_col, step_fcp_col, step_lcp_col, "cls",
             "status", "screenshot", "error"
         ])
 
@@ -487,37 +487,37 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                                         label=f"row{index}"
                                     )
 
-                                    step_timestamp = datetime.utcnow()
-                                    converted_step_duration = time_formatter.convert(step_data.get("duration_ms"))
-                                    converted_step_fcp = time_formatter.convert(step_data.get("fcp"))
-                                    converted_step_lcp = time_formatter.convert(step_data.get("lcp"))
-                                    step_writer.writerow([
-                                        step_timestamp.isoformat(),
-                                        args.env,
-                                        run_id,
-                                        journey_name,
-                                        step_data["step"],
-                                        converted_step_duration,
-                                        converted_step_fcp,
-                                        converted_step_lcp,
-                                        step_data["cls"],
-                                        step_data["status"],
-                                        screenshot_path,
-                                        error_text
-                                    ])
+                                step_timestamp = datetime.utcnow()
+                                converted_step_duration = time_formatter.convert(step_data.get("duration_ms"))
+                                converted_step_fcp = time_formatter.convert(step_data.get("fcp"))
+                                converted_step_lcp = time_formatter.convert(step_data.get("lcp"))
+                                step_writer.writerow([
+                                    step_timestamp.isoformat(),
+                                    args.env,
+                                    run_id,
+                                    journey_name,
+                                    step_data["step"],
+                                    converted_step_duration,
+                                    converted_step_fcp,
+                                    converted_step_lcp,
+                                    step_data["cls"],
+                                    step_data["status"],
+                                    screenshot_path,
+                                    error_text
+                                ])
 
-                                    duration_valid = step_data.get("duration_ms") is not None and step_data["duration_ms"] >= 0
-                                    if duration_valid:
-                                        bucket_start = get_time_bucket(step_timestamp, bucket_minutes)
-                                        bucketed_step_timings[(journey_name, step_data["step"])][bucket_start].append(
-                                            step_data["duration_ms"]
+                                duration_valid = step_data.get("duration_ms") is not None and step_data["duration_ms"] >= 0
+                                if duration_valid:
+                                    bucket_start = get_time_bucket(step_timestamp, bucket_minutes)
+                                    bucketed_step_timings[(journey_name, step_data["step"])][bucket_start].append(
+                                        step_data["duration_ms"]
+                                    )
+
+                                    lcp_value = step_data.get("lcp", -1)
+                                    if isinstance(lcp_value, (int, float)) and lcp_value >= 0:
+                                        bucketed_step_lcp[(journey_name, step_data["step"])][bucket_start].append(
+                                            lcp_value
                                         )
-
-                                        lcp_value = step_data.get("lcp", -1)
-                                        if isinstance(lcp_value, (int, float)) and lcp_value >= 0:
-                                            bucketed_step_lcp[(journey_name, step_data["step"])][bucket_start].append(
-                                                lcp_value
-                                            )
 
                         except Exception as exc:
                             status = "FAILURE"
@@ -573,43 +573,43 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                             stop_requested = True
                             break
 
-                        if stop_requested:
-                            break
-
                     if stop_requested:
                         break
 
-                    browser.close()
+                if stop_requested:
+                    break
 
-                    with open(step_summary_path, "w", newline="") as summary_file:
-                        summary_writer = csv.writer(summary_file)
-                        summary_writer.writerow([
-                            "journey", "step",
-                            f"avg_{time_formatter.label}",
-                            f"p90_{time_formatter.label}",
-                            f"max_{time_formatter.label}",
-                            f"min_{time_formatter.label}",
-                            "samples"
-                        ])
-                        for (journey_name, step_name), values in step_timings.items():
-                            valid_values = [v for v in values if v >= 0]
-                            if not valid_values:
-                                continue
+            browser.close()
 
-                            summary_writer.writerow([
-                                journey_name,
-                                step_name,
-                                time_formatter.convert(statistics.mean(valid_values)),
-                                time_formatter.convert(percentile(valid_values, 90)),
-                                time_formatter.convert(max(valid_values)),
-                                time_formatter.convert(min(valid_values)),
-                                len(valid_values)
-                            ])
+    with open(step_summary_path, "w", newline="") as summary_file:
+        summary_writer = csv.writer(summary_file)
+        summary_writer.writerow([
+            "journey", "step",
+            f"avg_{time_formatter.label}",
+            f"p90_{time_formatter.label}",
+            f"max_{time_formatter.label}",
+            f"min_{time_formatter.label}",
+            "samples"
+        ])
+        for (journey_name, step_name), values in step_timings.items():
+            valid_values = [v for v in values if v >= 0]
+            if not valid_values:
+                continue
+
+            summary_writer.writerow([
+                journey_name,
+                step_name,
+                time_formatter.convert(statistics.mean(valid_values)),
+                time_formatter.convert(percentile(valid_values, 90)),
+                time_formatter.convert(max(valid_values)),
+                time_formatter.convert(min(valid_values)),
+                len(valid_values)
+            ])
 
     with open(step_bucketed_path, "w", newline="") as bucket_file:
         bucket_writer = csv.writer(bucket_file)
         bucket_writer.writerow([
-            "bucket_start_utc", "env", run_id, "journey", "step",
+            "bucket_start_utc", "env", "run_id", "journey", "step",
             f"p90_duration_{time_formatter.label}", f"avg_duration_{time_formatter.label}",
             f"p90_lcp_{time_formatter.label}", f"avg_lcp_{time_formatter.label}", "samples"
         ])
@@ -640,38 +640,38 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
     #             f'synthetic_journey_p90_{time_formatter.label}{{env="{args.env}",journey="{journey_name}"}} '
     #             f'{time_formatter.convert(percentile(values, 90))}\n'
     #         )                                   
-       
+
     # for (journey_name, step_name), values in step_timings.items():
     #     prom_file.write(
     #         f'synthetic_step_p90_{time_formatter.label}{{env="{args.env}",journey="{journey_name}",step="{step_name}"}} '
     #         f'{time_formatter.convert(percentile(values, 90))}\n'
     #     )
 
-    # ============== Prometheus Push ================
+# ============== Prometheus Push ================
 
     registry = CollectorRegistry()
 
     journey_gauge = Gauge(
-        f"synthetic_journey_p90_{time_formatter.label}",
-        "P90 journey duration",
-        ["env", "journey", "run_id"],
-        registry=registry
+    f"synthetic_journey_p90_{time_formatter.label}",
+    "P90 journey duration",
+    ["env", "journey", "run_id"],
+    registry=registry
     )
 
     for journey, values in journey_timings.items():
-        journey_gauge.labels(
-            env=args.env,
-            journey=journey,
-            run_id=run_id
-            ).set(int(percentile(values, 90)))
+    journey_gauge.labels(
+        env=args.env,
+        journey=journey,
+        run_id=run_id
+        ).set(int(percentile(values, 90)))
 
     push_to_gateway(
-        "localhost:9091",
-        job="synthetic_monitor",
-        registry=registry
+    "localhost:9091",
+    job="synthetic_monitor",
+    registry=registry
     )
-        
-        
+
+
 # ================= MAIN =================
 
 def main():
