@@ -96,17 +96,17 @@ def clean_error_message(message):
     if marker in text:
         text = text.split(marker, 1)[0].strip()
 
-        if "\n" in text:
-            text = text.splitlines()[0]
+    if "\n" in text:
+        text = text.splitlines()[0]
 
-        return text
+    return text
 
 
 # ============== URL HELPERS ================
 
 def get_time_bucket(ts, bucket_minutes):
     return ts.replace(
-        minute=(ts.minute // bucket_minutes) * bucket_minutes),
+        minute=(ts.minute // bucket_minutes) * bucket_minutes,
         second=0,
         microsecond=0
     )
@@ -134,56 +134,11 @@ class ScenarioObserver:
         
         duration_ms = int((time.time() - self.start_time) * 1000)
 
-    def safe_eval(expr):
-        try:
-            return page.evaluate(expr)
-        except Exception:
-            return -1
-
-        fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
-        
-        lcp = safe_eval("""
-        () => new Promise(resolve => {
-            new PerformanceObserver(list => {
-                const e = list.getEntries()
-                resolve(e[e.length - 1]?.startTime || -1)
-            }).observe({ type: 'largest-contentful-paint', buffered: true })
-        })
-        """)
-
-        cls = self.safe_eval("""
-        () => {
-            let v = 0
-            new PerformanceObserver(list => {
-                for (const e of list.getEntries()) {
-                    if (!e.hadRecentInput) v += e.value
-                }
-            }).observe({ type: 'layout-shift', buffered: true })
-            return v
-        }
-        """)
-
-        self.start_time = None
-        cls_value = 0.0 if cls == -1 else cls
-        return duration_ms, int(fcp), int(lcp), round(cls, 3)    
-
-    class StepObserver:
-        def __init__(self):
-            self.step_name = None
-            self.start_time = None
-
-        def start_step(self, name):
-            self.step_name = name
-            self.start_time = time.time()
-
-        def end_step(self, page):
-            duration = int((time.time() - self.start_time) * 1000)
-
-            def safe_eval(expr):
-                try:
-                    return page.evaluate(expr)
-                except Exception:
-                    return -1
+        def safe_eval(expr):
+            try:
+                return page.evaluate(expr)
+            except Exception:
+                return -1
 
             fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
             
@@ -196,7 +151,7 @@ class ScenarioObserver:
             })
             """)
 
-            cls = safe_eval("""
+            cls = self.safe_eval("""
             () => {
                 let v = 0
                 new PerformanceObserver(list => {
@@ -208,14 +163,59 @@ class ScenarioObserver:
             }
             """)
 
-            return {
-                "step": self.step_name,
-                "duration_ms": duration,
-                "fcp": int(fcp),
-                "lcp": int(lcp),
-                "cls": round(cls, 3),
-                "status": "SUCCESS"
-            }
+        self.start_time = None
+        cls_value = 0.0 if cls == -1 else cls
+        return duration_ms, int(fcp), int(lcp), round(cls, 3)    
+
+class StepObserver:
+    def __init__(self):
+        self.step_name = None
+        self.start_time = None
+
+    def start_step(self, name):
+        self.step_name = name
+        self.start_time = time.time()
+
+    def end_step(self, page):
+        duration = int((time.time() - self.start_time) * 1000)
+
+        def safe_eval(expr):
+            try:
+                return page.evaluate(expr)
+            except Exception:
+                return -1
+
+        fcp = safe_eval("performance.getEntriesByName('first-contentful-paint')[0]?.startTime || -1")
+        
+        lcp = safe_eval("""
+        () => new Promise(resolve => {
+            new PerformanceObserver(list => {
+                const e = list.getEntries()
+                resolve(e[e.length - 1]?.startTime || -1)
+            }).observe({ type: 'largest-contentful-paint', buffered: true })
+        })
+        """)
+
+        cls = safe_eval("""
+        () => {
+            let v = 0
+            new PerformanceObserver(list => {
+                for (const e of list.getEntries()) {
+                    if (!e.hadRecentInput) v += e.value
+                }
+            }).observe({ type: 'layout-shift', buffered: true })
+            return v
+        }
+        """)
+
+        return {
+            "step": self.step_name,
+            "duration_ms": duration,
+            "fcp": int(fcp),
+            "lcp": int(lcp),
+            "cls": round(cls, 3),
+            "status": "SUCCESS"
+        }
 
 
 # ================= MODES =================
