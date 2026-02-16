@@ -1,0 +1,206 @@
+{
+  "title": "Synthetic Monitoring - Production SRE Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "Error Rate % (5m)",
+      "targets": [
+        { "expr": "synthetic_url:error_rate_5m", "legendFormat": "" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {"color": "green", "value": 0},
+          {"color": "red", "value": 5}
+        ]}}},
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "URL P90 (5m)",
+      "targets": [
+        { "expr": "synthetic_url:p90_duration_5m", "legendFormat": "" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey P90 (5m)",
+      "targets": [
+        { "expr": "synthetic_journey:p90_duration_5m", "legendFormat": "" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Burn Rate (5m)",
+      "targets": [
+        { "expr": "synthetic_url:burn_rate_5m", "legendFormat": "" }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "URL Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "URL P90 Trend + SLA (2s)",
+      "targets": [
+        {
+          "expr": "synthetic_url:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{scenario}}"
+        },
+        {
+          "expr": "2",
+          "legendFormat": "SLA 2s"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Error Rate Trend",
+      "targets": [
+        {
+          "expr": "synthetic_url:error_rate_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Success vs Failure (Rate)",
+      "targets": [
+        {
+          "expr": "rate(synthetic_url_success_total{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "Success"
+        },
+        {
+          "expr": "rate(synthetic_url_failure_total{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "Failure"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey Duration",
+      "targets": [
+        {
+          "expr": "synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90",
+      "targets": [
+        {
+          "expr": "synthetic_step:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 36 }
+    },
+
+    {
+      "type": "heatmap",
+      "title": "Step Duration Heatmap",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}"
+        }
+      ],
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 44 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Top 5 Slowest URLs (P90)",
+      "targets": [
+        {
+          "expr": "topk(5, synthetic_url:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"})",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 54 }
+    }
+
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_url_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_url_duration_s, run_id)"
+      }
+    ]
+  }
+}
