@@ -1,0 +1,81 @@
+{
+  "title": "Synthetic Frontend Load Test Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "URL P90 Load Time (s)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "synthetic_url_duration_p90_s",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "URL Avg Load Time (s)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "synthetic_url_duration_avg_s",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "URL Success Total",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(synthetic_url_success_total)",
+          "legendFormat": "Success"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "URL Failure Total",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(synthetic_url_failure_total)",
+          "legendFormat": "Failure"
+        }
+      ],
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Duration (s)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "synthetic_journey_duration_p90_s",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Step P90 Duration (s)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_p90_s",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 }
+    }
+  ]
+}
