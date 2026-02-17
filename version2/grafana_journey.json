@@ -1,0 +1,128 @@
+{
+  "title": "Synthetic Journey Monitoring - Optimized",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "Journey P90 (5m)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Success (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_journey_success_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Failure (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_journey_failure_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Trend + SLA (2s)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        },
+        {
+          "expr": "2",
+          "legendFormat": "SLA 2s"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 Trend",
+      "targets": [
+        {
+          "expr": "synthetic_step:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }
+    },
+
+    {
+      "type": "heatmap",
+      "title": "Step Duration Heatmap",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}"
+        }
+      ],
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 }
+    }
+
+  ]
+}
