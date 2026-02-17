@@ -1,0 +1,164 @@
+{
+  "title": "Synthetic Journey Monitoring - Executive Clean",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 5,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "Overall Journey P90 (Worst - 5m)",
+      "targets": [
+        {
+          "expr": "max(quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 1.5 },
+              { "color": "red", "value": 2 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Overall Journey AVG (5m)",
+      "targets": [
+        {
+          "expr": "avg(avg_over_time(synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m]))"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Success (5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_journey_success_total{env=\"$env\", run_id=\"$run_id\"}[5m]))"
+        }
+      ],
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Failure (5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_journey_failure_total{env=\"$env\", run_id=\"$run_id\"}[5m]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey Duration (Raw per Journey)",
+      "targets": [
+        {
+          "expr": "synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Trend + SLA (2s)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{journey}}"
+        },
+        {
+          "expr": "2",
+          "legendFormat": "SLA 2s"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Raw per Step)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 Trend (5m Rolling)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step AVG Trend (5m Rolling)",
+      "targets": [
+        {
+          "expr": "avg_over_time(synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 }
+    }
+
+  ]
+}
