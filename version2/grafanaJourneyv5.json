@@ -1,0 +1,110 @@
+{
+  "title": "Synthetic Journey Monitoring - With Run Comparison",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 4,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, env)"
+      },
+      {
+        "name": "runA",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      },
+      {
+        "name": "runB",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 - Run A",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$runA\"}[5m])",
+          "legendFormat": "Run A - {{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 - Run B",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$runB\"}[5m])",
+          "legendFormat": "Run B - {{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Delta (Run B - Run A)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$runB\"}[5m]) - quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$runA\"}[5m])",
+          "legendFormat": "{{journey}} Delta"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 - Run A",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$runA\"}[5m])",
+          "legendFormat": "Run A - {{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 - Run B",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$runB\"}[5m])",
+          "legendFormat": "Run B - {{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 Delta (Run B - Run A)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$runB\"}[5m]) - quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$runA\"}[5m])",
+          "legendFormat": "{{journey}} - {{step}} Delta"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 }
+    }
+
+  ]
+}
