@@ -1,0 +1,172 @@
+{
+  "title": "Synthetic Journey Monitoring - Final Consolidated",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 3,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      },
+      {
+        "name": "run_a",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      },
+      {
+        "name": "run_b",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "Journey P90 (5m)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Success (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_journey_success_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Failure (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_journey_failure_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Trend + SLA (2s)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}}"
+        },
+        {
+          "expr": "2",
+          "legendFormat": "SLA 2s"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 Trend",
+      "targets": [
+        {
+          "expr": "synthetic_step:p90_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step AVG Trend (5m Rolling)",
+      "targets": [
+        {
+          "expr": "synthetic_step:avg_duration_5m{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 36 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Comparison (Run A vs Run B)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_a\"}",
+          "legendFormat": "Run A - {{journey}}"
+        },
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_b\"}",
+          "legendFormat": "Run B - {{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 44 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Journey P90 Delta (Run B - Run A)",
+      "targets": [
+        {
+          "expr": "synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_b\"} - synthetic_journey:p90_duration_5m{env=\"$env\", run_id=\"$run_a\"}",
+          "legendFormat": "{{journey}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 52 }
+    }
+
+  ]
+}
