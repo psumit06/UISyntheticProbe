@@ -1,0 +1,146 @@
+{
+  "title": "Synthetic URL Monitoring - Optimized",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_url_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_url_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "URL P90 (5m Rolling)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "URL AVG (5m Rolling)",
+      "targets": [
+        {
+          "expr": "avg_over_time(synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Success (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_url_success_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Failure (5m)",
+      "targets": [
+        {
+          "expr": "increase(synthetic_url_failure_total{env=\"$env\", run_id=\"$run_id\"}[5m])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "URL Duration (Raw)",
+      "targets": [
+        {
+          "expr": "synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "URL P90 Trend + SLA (2s)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{scenario}}"
+        },
+        {
+          "expr": "2",
+          "legendFormat": "SLA 2s"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "URL AVG Trend (5m Rolling)",
+      "targets": [
+        {
+          "expr": "avg_over_time(synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[5m])",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "FCP / LCP Trend",
+      "targets": [
+        {
+          "expr": "synthetic_url_fcp_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "FCP - {{scenario}}"
+        },
+        {
+          "expr": "synthetic_url_lcp_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "LCP - {{scenario}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "CLS Trend",
+      "targets": [
+        {
+          "expr": "synthetic_url_cls{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{scenario}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 36 }
+    }
+
+  ]
+}
