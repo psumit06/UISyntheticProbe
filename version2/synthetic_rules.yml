@@ -52,3 +52,9 @@ groups:
         0.9,
         synthetic_step_duration_s[5m]
       )
+  - record: synthetic_step:avg_duration_5m
+  expr: |
+    avg_over_time(
+      synthetic_step_duration_s[5m]
+    )
+
