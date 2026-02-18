@@ -735,4 +735,24 @@ def run_journey_mode(args, base_dir, run_id, time_formatter):
                     time_formatter.convert(percentile(lcp_values, 90)) if lcp_values else -1,
                     time_formatter.convert(statistics.mean(lcp_values)) if lcp_values else -1,
                     len(durations)
+
                 ])
+
+# ================= MAIN =================
+def main():
+    args = parse_args()
+
+    run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:6]}"
+    base_dir = os.path.join("runs", args.env, run_id)
+    time_formatter = TimeFormatter(args.time_unit)
+
+    if args.mode == "url":
+        run_url_mode(args, base_dir, run_id, time_formatter)
+    elif args.mode == "journey":
+        run_journey_mode(args, base_dir, run_id, time_formatter)
+    else:
+        raise ValueError("Unsupported mode selected. Choose 'url' or 'journey'.")
+
+
+if __name__ == "__main__":
+    main()
