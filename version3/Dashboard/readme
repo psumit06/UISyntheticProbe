@@ -1,1 +1,4 @@
 
+last_over_time(synthetic_step_duration_s{env="$env",run_id="$run_id"}[$__interval])
+unless
+(time() - timestamp(last_over_time(synthetic_step_duration_s{env="$env",run_id="$run_id"}[$__interval])) > $__range_s)
