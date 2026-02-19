@@ -1,5 +1,5 @@
 {
-  "title": "Synthetic Journey Monitoring - Full Run (Clean)",
+  "title": "Synthetic Journey Monitoring - Fixed (Clean)",
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 10,
@@ -96,7 +96,7 @@
       "title": "Step Duration (Raw per Step)",
       "targets": [
         {
-          "expr": "last_over_time((synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s))[$__interval])",
+          "expr": "last_over_time(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "{{journey}} - {{step}}"
         }
       ],
@@ -159,11 +159,11 @@
       "title": "Step FCP & LCP Trend",
       "targets": [
         {
-          "expr": "last_over_time((synthetic_step_fcp_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s))[$__interval])",
+          "expr": "last_over_time(synthetic_step_fcp_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "FCP - {{step}}"
         },
         {
-          "expr": "last_over_time((synthetic_step_lcp_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s))[$__interval])",
+          "expr": "last_over_time(synthetic_step_lcp_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "LCP - {{step}}"
         }
       ],
@@ -184,7 +184,7 @@
       "title": "Step CLS Trend",
       "targets": [
         {
-          "expr": "last_over_time((synthetic_step_cls{env=\"$env\",run_id=\"$run_id\"} AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s))[$__interval])",
+          "expr": "last_over_time(synthetic_step_cls{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,journey,run_id) group_left(step) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "{{journey}} - {{step}}"
         }
       ],
