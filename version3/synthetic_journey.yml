@@ -1,0 +1,140 @@
+{
+  "title": "Synthetic Journey Monitoring - Step Focus (Full Run)",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 7,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_step_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_step_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "stat",
+      "title": "Overall Step P90 (Full Run)",
+      "targets": [
+        {
+          "expr": "max(quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Overall Step AVG (Full Run)",
+      "targets": [
+        {
+          "expr": "avg(avg_over_time(synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Total Journey Success (Run)",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_journey_success_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Total Journey Failure (Run)",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_journey_failure_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Raw per Step)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 (Full Run)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step AVG (Full Run)",
+      "targets": [
+        {
+          "expr": "avg_over_time(synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step FCP & LCP Trend",
+      "targets": [
+        {
+          "expr": "synthetic_step_fcp_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "FCP - {{journey}} - {{step}}"
+        },
+        {
+          "expr": "synthetic_step_lcp_s{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "LCP - {{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step CLS Trend",
+      "targets": [
+        {
+          "expr": "synthetic_step_cls{env=\"$env\", run_id=\"$run_id\"}",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 }
+    }
+
+  ]
+}
