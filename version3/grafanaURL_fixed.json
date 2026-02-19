@@ -1,5 +1,5 @@
 {
-  "title": "Synthetic URL Monitoring - Full Run Complete",
+  "title": "Synthetic URL Monitoring - Fixed Complete",
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 4,
@@ -96,7 +96,7 @@
       "title": "URL Duration (Raw per URL)",
       "targets": [
         {
-          "expr": "synthetic_url_duration_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
+          "expr": "last_over_time(synthetic_url_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "{{scenario}}"
         }
       ],
@@ -184,11 +184,11 @@
       "title": "FCP & LCP Trend",
       "targets": [
         {
-          "expr": "synthetic_url_fcp_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
+          "expr": "last_over_time(synthetic_url_fcp_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "FCP - {{scenario}}"
         },
         {
-          "expr": "synthetic_url_lcp_s{env=\"$env\",run_id=\"$run_id\"} AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
+          "expr": "last_over_time(synthetic_url_lcp_s{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "LCP - {{scenario}}"
         }
       ],
@@ -209,7 +209,7 @@
       "title": "CLS Trend",
       "targets": [
         {
-          "expr": "synthetic_url_cls{env=\"$env\",run_id=\"$run_id\"} AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
+          "expr": "last_over_time(synthetic_url_cls{env=\"$env\",run_id=\"$run_id\"}[$__interval]) AND on(env,run_id) (time() - synthetic_run_last_push_timestamp{env=\"$env\",run_id=\"$run_id\"} < $__range_s)",
           "legendFormat": "{{scenario}}"
         }
       ],
