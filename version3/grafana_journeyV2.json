@@ -1,0 +1,125 @@
+{
+  "title": "Synthetic Journey Monitoring - Fresh Metrics",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 2,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_step_duration_s, env)"
+      },
+      {
+        "name": "run_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(synthetic_step_duration_s, run_id)"
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "type": "timeseries",
+      "title": "Step Duration (Fresh)",
+      "targets": [
+        {
+          "expr": "synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s)",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step P90 (Fresh)",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.9,(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s))[$__range])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step AVG (Fresh)",
+      "targets": [
+        {
+          "expr": "avg_over_time((synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s))[$__range])",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step FCP Trend (Fresh)",
+      "targets": [
+        {
+          "expr": "synthetic_step_fcp_s{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_fcp_s{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s)",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step LCP Trend (Fresh)",
+      "targets": [
+        {
+          "expr": "synthetic_step_lcp_s{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_lcp_s{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s)",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Step CLS Trend (Fresh)",
+      "targets": [
+        {
+          "expr": "synthetic_step_cls{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_step_cls{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s)",
+          "legendFormat": "{{journey}} - {{step}}"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Success (Fresh)",
+      "targets": [
+        {
+          "expr": "increase((synthetic_journey_success_total{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_journey_success_total{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s))[$__range])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 40 }
+    },
+
+    {
+      "type": "stat",
+      "title": "Journey Failure (Fresh)",
+      "targets": [
+        {
+          "expr": "increase((synthetic_journey_failure_total{env=\"$env\",run_id=\"$run_id\"} and on() (timestamp(synthetic_journey_failure_total{env=\"$env\",run_id=\"$run_id\"}) > time() - $__range_s))[$__range])"
+        }
+      ],
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 40 }
+    }
+
+  ]
+}
