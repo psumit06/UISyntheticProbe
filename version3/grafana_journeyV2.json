@@ -1,7 +1,8 @@
 {
-  "title": "Synthetic Journey Monitoring - Full Range Correct",
+  "title": "Synthetic Journey Monitoring - Full Run Analytics (No Stale)",
+  "timezone": "browser",
   "schemaVersion": 38,
-  "version": 1,
+  "version": 7,
   "refresh": "10s",
   "templating": {
     "list": [
@@ -9,13 +10,13 @@
         "name": "env",
         "type": "query",
         "datasource": "Prometheus",
-        "query": "label_values(synthetic_step_duration_s, env)"
+        "query": "label_values(synthetic_journey_duration_s, env)"
       },
       {
         "name": "run_id",
         "type": "query",
         "datasource": "Prometheus",
-        "query": "label_values(synthetic_step_duration_s, run_id)"
+        "query": "label_values(synthetic_journey_duration_s, run_id)"
       }
     ]
   },
@@ -23,116 +24,114 @@
 
     {
       "type": "stat",
-      "title": "Overall Step P90",
+      "title": "Overall Journey P90 (Full Run)",
       "targets": [
         {
-          "expr": "max(quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+          "expr": "max(quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
         }
       ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":4,"w":6,"x":0,"y":0}
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 1.5 },
+              { "color": "red", "value": 2 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 }
     },
 
     {
       "type": "stat",
-      "title": "Overall Step AVG",
+      "title": "Overall Journey AVG (Full Run)",
       "targets": [
         {
-          "expr": "avg(avg_over_time(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+          "expr": "avg(avg_over_time(synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
         }
       ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":4,"w":6,"x":6,"y":0}
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 }
     },
 
     {
       "type": "stat",
-      "title": "Total Step Success",
+      "title": "Total Success (Run)",
       "targets": [
         {
-          "expr": "sum(increase(synthetic_step_success_total{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+          "expr": "sum(increase(synthetic_journey_success_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
         }
       ],
-      "gridPos": {"h":4,"w":6,"x":12,"y":0}
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
     },
 
     {
       "type": "stat",
-      "title": "Total Step Failure",
+      "title": "Total Failure (Run)",
       "targets": [
         {
-          "expr": "sum(increase(synthetic_step_failure_total{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+          "expr": "sum(increase(synthetic_journey_failure_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
         }
       ],
-      "gridPos": {"h":4,"w":6,"x":18,"y":0}
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
     },
 
     {
       "type": "timeseries",
-      "title": "Step Duration (Raw per Step)",
+      "title": "Journey Duration (Raw per Journey)",
       "targets": [
         {
-          "expr": "synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}",
-          "legendFormat": "{{journey}} - {{step}}"
+          "expr": "last_over_time(synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__interval])",
+          "legendFormat": "{{journey}}"
         }
       ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":8,"w":24,"x":0,"y":4}
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 }
     },
 
     {
       "type": "timeseries",
-      "title": "Step P90",
+      "title": "Journey P90 (Full Run) + SLA",
       "targets": [
         {
-          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__range])",
-          "legendFormat": "{{journey}} - {{step}}"
-        }
-      ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":8,"w":24,"x":0,"y":12}
-    },
-
-    {
-      "type": "timeseries",
-      "title": "Step AVG",
-      "targets": [
-        {
-          "expr": "avg_over_time(synthetic_step_duration_s{env=\"$env\",run_id=\"$run_id\"}[$__range])",
-          "legendFormat": "{{journey}} - {{step}}"
-        }
-      ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":8,"w":24,"x":0,"y":20}
-    },
-
-    {
-      "type": "timeseries",
-      "title": "Step FCP & LCP Trend",
-      "targets": [
-        {
-          "expr": "synthetic_step_fcp_s{env=\"$env\",run_id=\"$run_id\"}",
-          "legendFormat": "FCP {{step}}"
+          "expr": "quantile_over_time(0.9, synthetic_journey_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
+          "legendFormat": "{{journey}}"
         },
         {
-          "expr": "synthetic_step_lcp_s{env=\"$env\",run_id=\"$run_id\"}",
-          "legendFormat": "LCP {{step}}"
+          "expr": "2",
+          "legendFormat": "SLA 2s"
         }
       ],
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h":8,"w":24,"x":0,"y":28}
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 }
     },
 
     {
       "type": "timeseries",
-      "title": "Step CLS Trend",
+      "title": "Step P90 (Full Run)",
       "targets": [
         {
-          "expr": "synthetic_step_cls{env=\"$env\",run_id=\"$run_id\"}",
+          "expr": "quantile_over_time(0.9, synthetic_step_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
           "legendFormat": "{{journey}} - {{step}}"
         }
       ],
-      "gridPos": {"h":8,"w":24,"x":0,"y":36}
+      "fieldConfig": { "defaults": { "unit": "s" }},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 }
     }
 
   ]
