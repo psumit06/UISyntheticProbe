@@ -1,5 +1,5 @@
 {
-  "title": "Synthetic Journey Monitoring - Histogram Edition (FIXED)",
+  "title": "Synthetic Journey Monitoring - Histogram Edition (UPDATED)",
   "timezone": "browser",
   "schemaVersion": 38,
   "refresh": "10s",
@@ -22,10 +22,10 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Overall Step P90",
+      "title": "Overall Step P90 (Full Run)",
       "targets": [
         {
-          "expr": "max(histogram_quantile(0.9,sum by (le)(rate(synthetic_step_duration_ms_bucket{env=\"$env\",run_id=\"$run_id\"}[5m])))/1000)"
+          "expr": "max(histogram_quantile(0.9,sum by (le)(increase(synthetic_step_duration_ms_bucket{env=\"$env\",run_id=\"$run_id\"}[$__range])))/1000)"
         }
       ],
       "fieldConfig": {
@@ -37,6 +37,56 @@
         "h": 5,
         "w": 6,
         "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Overall Step AVG (Full Run)",
+      "targets": [
+        {
+          "expr": "(sum(increase(synthetic_step_duration_ms_sum{env=\"$env\",run_id=\"$run_id\"}[$__range]))/sum(increase(synthetic_step_duration_ms_count{env=\"$env\",run_id=\"$run_id\"}[$__range])))/1000"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Step Success",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_step_success_total{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Step Failure",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_step_failure_total{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
         "y": 0
       }
     },
@@ -63,7 +113,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Step P90",
+      "title": "Step P90 Trend",
       "targets": [
         {
           "expr": "histogram_quantile(0.9,sum by (le,journey,step)(rate(synthetic_step_duration_ms_bucket{env=\"$env\",run_id=\"$run_id\"}[5m])))/1000",
@@ -121,6 +171,21 @@
         "w": 24,
         "x": 0,
         "y": 29
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Journey SLO Burn",
+      "targets": [
+        {
+          "expr": "sum(increase(synthetic_step_duration_ms_bucket{env=\"$env\",run_id=\"$run_id\",le=\"3000\"}[$__range]))/sum(increase(synthetic_step_duration_ms_count{env=\"$env\",run_id=\"$run_id\"}[$__range]))"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 37
       }
     }
   ]
