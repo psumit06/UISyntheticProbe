@@ -1,0 +1,39 @@
+groups:
+- name: synthetic_alerts
+  rules:
+
+  # ----------------------------------
+  # SLA Breach: P90 > 2 seconds
+  # ----------------------------------
+  - alert: SyntheticURLSLABreach
+    expr: synthetic_url:p90_duration_5m > 2
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "URL SLA Breach"
+      description: "Synthetic URL P90 exceeded 2 seconds for 2 minutes."
+
+  # ----------------------------------
+  # High Error Rate (>5%)
+  # ----------------------------------
+  - alert: SyntheticHighErrorRate
+    expr: synthetic_url:error_rate_5m > 5
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High Synthetic Error Rate"
+      description: "Synthetic error rate exceeded 5%."
+
+  # ----------------------------------
+  # Slow Step (>3s)
+  # ----------------------------------
+  - alert: SyntheticStepSlow
+    expr: synthetic_step:p90_duration_5m > 3
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Synthetic Step Slow"
+      description: "Step P90 duration exceeded 3 seconds."
