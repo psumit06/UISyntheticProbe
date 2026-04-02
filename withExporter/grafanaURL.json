@@ -1,157 +1,152 @@
 {
-  "title": "Synthetic URL Monitoring - Full Run Complete",
+  "title": "Synthetic URL Monitoring (Filtered)",
   "timezone": "browser",
-  "schemaVersion": 38,
-  "version": 4,
-  "refresh": "10s",
   "templating": {
     "list": [
       {
         "name": "env",
         "type": "query",
+        "label": "Environment",
         "datasource": "Prometheus",
-        "query": "label_values(synthetic_url_duration_s, env)"
+        "query": "label_values(synthetic_url_success_total, env)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".*"
       },
       {
         "name": "run_id",
         "type": "query",
+        "label": "Run ID",
         "datasource": "Prometheus",
-        "query": "label_values(synthetic_url_duration_s, run_id)"
+        "query": "label_values(synthetic_url_success_total{env=~\"$env\"}, run_id)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".*"
       }
     ]
   },
   "panels": [
-
     {
       "type": "stat",
       "title": "Overall P90 (Full Run)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
       "targets": [
         {
-          "expr": "max(quantile_over_time(0.9, synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+          "expr": "histogram_quantile(0.9, sum(rate(synthetic_url_duration_s_bucket{env=~\"$env\", run_id=~\"$run_id\"}[$__range])) by (le))",
+          "legendFormat": "P90"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 }
+      ]
     },
-
     {
       "type": "stat",
-      "title": "Overall AVG (Full Run)",
+      "title": "Overall Avg (Full Run)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
       "targets": [
         {
-          "expr": "avg(avg_over_time(synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+          "expr": "sum(rate(synthetic_url_duration_s_sum{env=~\"$env\", run_id=~\"$run_id\"}[$__range])) / sum(rate(synthetic_url_duration_s_count{env=~\"$env\", run_id=~\"$run_id\"}[$__range]))",
+          "legendFormat": "AVG"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 }
+      ]
     },
-
     {
       "type": "stat",
-      "title": "Total Success (Run)",
+      "title": "Total Success",
+      "gridPos": { "x": 12, "y": 0, "w": 3, "h": 4 },
       "targets": [
         {
-          "expr": "sum(increase(synthetic_url_success_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+          "expr": "sum(increase(synthetic_url_success_total{env=~\"$env\", run_id=~\"$run_id\"}[$__range]))",
+          "legendFormat": "Success"
         }
-      ],
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
+      ]
     },
-
     {
       "type": "stat",
-      "title": "Total Failure (Run)",
+      "title": "Total Failure",
+      "gridPos": { "x": 15, "y": 0, "w": 3, "h": 4 },
       "targets": [
         {
-          "expr": "sum(increase(synthetic_url_failure_total{env=\"$env\", run_id=\"$run_id\"}[$__range]))"
+          "expr": "sum(increase(synthetic_url_failure_total{env=~\"$env\", run_id=~\"$run_id\"}[$__range]))",
+          "legendFormat": "Failure"
         }
-      ],
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
+      ]
     },
 
     {
       "type": "timeseries",
-      "title": "URL Duration (Raw per URL)",
+      "title": "URL Average Trend",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
       "targets": [
         {
-          "expr": "synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}",
+          "expr": "sum(rate(synthetic_url_duration_s_sum{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (scenario) / sum(rate(synthetic_url_duration_s_count{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (scenario)",
           "legendFormat": "{{scenario}}"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 }
+      ]
     },
 
     {
       "type": "timeseries",
-      "title": "URL P90 (Full Run) + SLA",
+      "title": "URL P90 Trend",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 6 },
       "targets": [
         {
-          "expr": "quantile_over_time(0.9, synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
-          "legendFormat": "{{scenario}}"
-        },
-        {
-          "expr": "2",
-          "legendFormat": "SLA 2s"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 }
-    },
-
-    {
-      "type": "timeseries",
-      "title": "URL AVG Trend (Full Run Window)",
-      "targets": [
-        {
-          "expr": "avg_over_time(synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range])",
+          "expr": "histogram_quantile(0.9, sum(rate(synthetic_url_duration_s_bucket{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (le, scenario))",
           "legendFormat": "{{scenario}}"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 }
+      ]
     },
 
     {
-      "type": "timeseries",
-      "title": "Top 5 Slowest URLs (P90 - Full Run)",
+      "type": "table",
+      "title": "Top Slowest URLs (P90)",
+      "gridPos": { "x": 0, "y": 10, "w": 12, "h": 6 },
       "targets": [
         {
-          "expr": "topk(5, quantile_over_time(0.9, synthetic_url_duration_s{env=\"$env\", run_id=\"$run_id\"}[$__range]))",
+          "expr": "topk(10, histogram_quantile(0.9, sum(rate(synthetic_url_duration_s_bucket{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (le, scenario)))",
+          "format": "table",
           "legendFormat": "{{scenario}}"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 }
+      ]
     },
 
     {
       "type": "timeseries",
-      "title": "FCP & LCP Trend",
+      "title": "FCP Trend",
+      "gridPos": { "x": 12, "y": 10, "w": 12, "h": 6 },
       "targets": [
         {
-          "expr": "synthetic_url_fcp_s{env=\"$env\", run_id=\"$run_id\"}",
-          "legendFormat": "FCP - {{scenario}}"
-        },
-        {
-          "expr": "synthetic_url_lcp_s{env=\"$env\", run_id=\"$run_id\"}",
-          "legendFormat": "LCP - {{scenario}}"
+          "expr": "histogram_quantile(0.9, sum(rate(synthetic_url_fcp_s_bucket{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (le, scenario))",
+          "legendFormat": "{{scenario}}"
         }
-      ],
-      "fieldConfig": { "defaults": { "unit": "s" }},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 }
+      ]
+    },
+
+    {
+      "type": "timeseries",
+      "title": "LCP Trend",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(synthetic_url_lcp_s_bucket{env=~\"$env\", run_id=~\"$run_id\"}[5m])) by (le, scenario))",
+          "legendFormat": "{{scenario}}"
+        }
+      ]
     },
 
     {
       "type": "timeseries",
       "title": "CLS Trend",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 6 },
       "targets": [
         {
-          "expr": "synthetic_url_cls{env=\"$env\", run_id=\"$run_id\"}",
+          "expr": "avg(synthetic_url_cls{env=~\"$env\", run_id=~\"$run_id\"}) by (scenario)",
           "legendFormat": "{{scenario}}"
         }
-      ],
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 45 }
+      ]
     }
-
-  ]
+  ],
+  "schemaVersion": 38,
+  "version": 2,
+  "refresh": "10s"
 }
