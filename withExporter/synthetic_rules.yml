@@ -1,0 +1,62 @@
+groups:
+- name: synthetic_url_rules
+  interval: 15s
+  rules:
+
+  # -----------------------------
+  # URL P90 (5 minute rolling)
+  # -----------------------------
+  - record: synthetic_url:p90_duration_5m
+    expr: |
+      quantile_over_time(
+        0.9,
+        synthetic_url_duration_s[5m]
+      )
+
+  # -----------------------------
+  # URL Error Rate %
+  # -----------------------------
+  - record: synthetic_url:error_rate_5m
+    expr: |
+      (
+        sum(rate(synthetic_url_failure_total[5m]))
+        /
+        (
+          sum(rate(synthetic_url_failure_total[5m]))
+          +
+          sum(rate(synthetic_url_success_total[5m]))
+        )
+      ) * 100
+
+  # -----------------------------
+  # Burn Rate (assumes 1% error budget)
+  # -----------------------------
+  - record: synthetic_url:burn_rate_5m
+    expr: |
+      synthetic_url:error_rate_5m / 1
+
+- name: synthetic_journey_rules
+  interval: 15s
+  rules:
+
+  - record: synthetic_journey:p90_duration_5m
+    expr: |
+      quantile_over_time(
+        0.9,
+        synthetic_journey_duration_s[5m]
+      )
+
+  - record: synthetic_step:p90_duration_5m
+    expr: |
+      quantile_over_time(
+        0.9,
+        synthetic_step_duration_s[5m]
+      )
+    labels:
+      metric_type: "p90"
+      
+  - record: synthetic_step:avg_duration_5m
+  expr: |
+    avg_over_time(
+      synthetic_step_duration_s[5m]
+    )
